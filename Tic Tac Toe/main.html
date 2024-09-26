@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>Super Tic Tac Toe</title>
+    <link rel="stylesheet" href="Cic Sac Soe.css" />
+  </head>
+  <body>
+
+    <header id="top">
+      <nav>
+      <div class="logo-holder"><a href="../index.html">Triple Baka!!</a></div>
+      <h4>1.1 - Real Numbers</h4>
+      
+      </nav>
+      </header>
+      
+
+
+    <h1>SUPER TIC TAC TOE</h1>
+    <div class="input-group">
+      <label for="p1">Player 1</label>
+      <input type="text" id="p1" name="p1" placeholder="Enter Name"/>
+    </div>
+    <br />
+    <div class="input-group">
+      <label for="p2">Player 2</label>
+      <input type="text" id="p2" name="p2" placeholder="Type 'AI' to play with AI"/>
+    </div>
+    <br />
+    <div class="input-group">
+      <label for="dimensions">Choose Dimension</label>
+      <input type="number" id="dimensions" name="dimensions" min="3" value="3" max="15" />
+    </div>
+
+    <button id="start-game">Start Game</button>
+    <button id="reset-game" onclick="resetGame()">Reset Game</button>
+    <div id="turn"></div>
+    <div id="custom-alert" class="modal">
+      <div class="modal-content">
+          <span class="close-btn">&times;</span>
+          <p id="alert-message"></p>
+          <button id="confirm-btn">OK</button>
+      </div>
+  </div>
+
+    <div id="game-container" class="hide class1 class2">
+      
+    </div>
+
+<!--
+    <div class="footer">
+        Made By <a href="https://github.com/lordjunn"><p>Lord Junn </p></a>
+    </div>
+-->
+
+    <script src="Toes.js"></script>
+  </body>
+</html>
