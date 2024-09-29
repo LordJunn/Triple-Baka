@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2048 Game</title>
+    <link rel="stylesheet" href="8402.css">
+</head>
+<body>
+
+    <header id="top">
+        <nav>
+          <div class="logo-holder"><a href="../index.html">Triple Baka!!</a></div>
+          
+          <h4>2048++</h4> <!-- Moved the title outside logo-holder -->
+          
+          <div class="logo-holder" id="timer"></div>
+        </nav>
+      </header>
+
+    <div class="input-group">
+        <label for="dimensions">Choose Dimension:</label>
+        <input type="number" id="dimensions" name="dimensions" min="3" value="4" max="11" step="1"/>
+    </div>
+    <div class="input-group">
+        <label for="winning-value">Winning Number:</label>
+        <input type="number" id="winning-value" name="winning-value" min="4" value="2048" step="4" />
+    </div>
+    <button id="start-game">Start Game</button>
+    
+    <div id="game-container">
+        <div id="grid-container"></div>
+        <div id="score">Score: <span id="score-value">0</span></div>
+        <div id="message"></div>
+    </div>
+
+    <div id="controls">
+        <button id="move-left">←</button>
+        <button id="move-up">↑</button>
+        <button id="move-down">↓</button>
+        <button id="move-right">→</button>
+    </div>
+    
+    
+    <script src="2468.js"></script>
+</body>
+</html>
