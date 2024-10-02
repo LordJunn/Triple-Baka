@@ -22,42 +22,51 @@ document.querySelector('.startbtn').addEventListener('click', function () {
 });
 
 function setDifficulty(difficulty) {
+    const bgColour = document.querySelector('.background'); // Select the background element
+    
     switch (difficulty) {
         case 'easy':
             cols = 5;
             rows = 5;
             cellSize = 80; // Larger cells
+            bgColour.style.background = "#50c9ab"; 
             break;
         case 'medium':
             cols = 8;
             rows = 8;
             cellSize = 50; // Standard cells
+            bgColour.style.background = "#4fc968"; 
             break;            
         case 'hard':
             cols = 10;
             rows = 10;
             cellSize = 40; // Smaller cells
+            bgColour.style.background = "#cdc44b"; 
             break;
         case 'insane':
             cols = 16;
             rows = 16;
             cellSize = 25; 
+            bgColour.style.background = "#cf8f49"; 
             break;
-        case 'extra':
+        case 'expert':
             cols = 20;
             rows = 20;
             cellSize = 20;  
+            bgColour.style.background = "#d1478c"; 
             break; 
         case 'extreme':
             cols = 25;
             rows = 25;
             cellSize = 16; 
+            bgColour.style.background = "#a842bd";
             break;
-        case 'insert custom difficulty name':
+        case 'gonkanau':
             cols = 40;
             rows = 40;
             cellSize = 10; 
-            break; //i think 40 is the limit before the browser gives up           
+            bgColour.style.background = "#000000"; 
+            break;
     }
     canvas.width = cols * cellSize;
     canvas.height = rows * cellSize;
@@ -130,7 +139,6 @@ function draw() {
     pen.clearRect(0, 0, canvas.width, canvas.height);
 
     const canvasElement = document.getElementById('mazeCanvas');
-
 
     // Create a circular clipping region for the flashlight effect
     const playerX = player1.x * cellSize + cellSize / 2;
@@ -262,5 +270,21 @@ document.getElementById('btnRight').addEventListener('click', function () {
     movePlayer('ArrowRight');
 });
 
+// Assuming you have this script at the end of your body or in a separate JS file
+document.addEventListener("DOMContentLoaded", function() {
+    const difficultySelect = document.getElementById("difficulty");
+    const gonkanauMusic = document.getElementById("gonkanauMusic");
+
+    difficultySelect.addEventListener("change", function() {
+        if (difficultySelect.value === "gonkanau") {
+            gonkanauMusic.play();
+        } else {
+            gonkanauMusic.pause();
+            gonkanauMusic.currentTime = 0; // Reset to start
+        }
+    });
+});
+
 // Initial Setup
 resetGame();
+

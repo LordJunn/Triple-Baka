@@ -15,23 +15,26 @@
         <h2 style="color:rgb(70, 50, 52); font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;">
             <u>Navigate the Labyrinth</u>
         </h2>
-        <label for="difficulty">Select Difficulty:</label>
-        <select id="difficulty">
-            <option value="easy">Easy</option>
-            <option value="medium">Medium</option>
-            <option value="hard">Hard</option>
-            <option value="insane">Insane</option>
-            <option value="extra">Extra</option>
-            <option value="extreme">Extreme</option>
-            <!-- hello there, if ur here, have fun with the lag underneath. -->
-            <option value="insert custom difficulty name">Junn's Tragic Love Hell</option>       
-        </select>
-        <button class="toggleFlashlight">Toggle Flashlight</button>
-        <button class="startbtn">Start</button>
-        <button id="btnUp">Up</button>
-        <button id="btnDown">Down</button>
-        <button id="btnRight">Right</button>
-        <button id="btnLeft">Left</button>
+        <div class="difficulty-controls">
+            <label for="difficulty">Select Difficulty:</label>
+            <select id="difficulty">
+                <option value="easy">Easy</option>
+                <option value="medium">Medium</option>
+                <option value="hard">Hard</option>
+                <option value="insane">Insane</option>
+                <option value="expert">Expert</option>
+                <option value="extreme">Extreme</option>
+                <option value="gonkanau">Ultimate Reverberant Gonkanau</option>       
+            </select>
+            <button class="toggleFlashlight">Toggle Flashlight</button>
+            <button class="startbtn">Start</button>
+        </div>
+        <div class="direction-controls">
+            <button id="btnUp">Up</button>
+            <button id="btnDown">Down</button>
+            <button id="btnRight">Right</button>
+            <button id="btnLeft">Left</button>
+        </div>
     </div>
 
     <ul class="background">
@@ -53,6 +56,7 @@
         </canvas>
     </div>
     <script src="labyrinth.js"></script>
+    <audio id="gonkanauMusic" src="Elegy.mp3" preload="auto"></audio>
 </body>
 
 </html>
