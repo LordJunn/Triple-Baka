@@ -45,6 +45,7 @@ function createCards() {
         cardsContainer.appendChild(card);
     });
 }
+
 function flipCard({target: clickedCard}) {
     if (cardOne !== clickedCard && !disableDeck) {
         clickedCard.classList.add("flip");
