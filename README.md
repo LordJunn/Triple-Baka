@@ -3,7 +3,8 @@ Making an "all in 1" super repository for any HTML + CSS + JS projects. A way to
 # Completed:    
 Tic Tac Toe ✅    
 Maze game ✅    
-2048 ✅    
+2048 ✅   
+Memory Card game
 
 # To be done:
 Sudoku    
