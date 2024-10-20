@@ -11,11 +11,13 @@ let enemiesInterval = 500;
 let frame = 0;
 let gameOver = false;
 let score = 0;
-const winningScore = 10000;
+let winningScore = 10000;
 let chosenDefender = 1;
 let speedFactor = 1;
 let currencyWin = 100000;
 let diffMod = 1;
+let spawnTotal = 0;
+
 
 const opacityGon = 0.03;
 
@@ -52,10 +54,12 @@ canvas.addEventListener('mouseleave', function(){
     mouse.y = undefined;
 });
 
+// BUTTONS
+
 // Create fast forward button
 const fastForwardBtn = document.createElement('button');
 fastForwardBtn.id = 'fastForwardBtn';
-fastForwardBtn.innerText = 'Fast Forward';
+fastForwardBtn.innerText = 'Normal Speed';
 fastForwardBtn.style.position = 'absolute';
 fastForwardBtn.style.top = '10px';
 fastForwardBtn.style.right = '10px';
@@ -73,14 +77,14 @@ let isFastForwarding = false;
 
 fastForwardBtn.addEventListener('click', function() {
     isFastForwarding = !isFastForwarding; // Toggle fast forward state
-    speedFactor = isFastForwarding ? 1 : 5; // Set speed factor based on state
-    fastForwardBtn.innerText = isFastForwarding ? 'Normal Speed' : 'Fast Forward'; // Update button text
+    speedFactor = isFastForwarding ? 5 : 1  ; // Set speed factor based on state
+    fastForwardBtn.innerText = isFastForwarding ? 'Fast Forward' : 'Normal Speed'; // Update button text
 });
 
 // Create easy mode button
 const easyBtn = document.createElement('button');
 easyBtn.id = 'easyBtn';
-easyBtn.innerText = 'Easy Mode';
+easyBtn.innerText = 'Normal Mode';
 easyBtn.style.position = 'absolute';
 easyBtn.style.top = '70px';
 easyBtn.style.right = '10px';
@@ -101,6 +105,112 @@ easyBtn.addEventListener('click', function() {
     diffMod = isEasy ? 2 : 1; // Set speed factor based on state
     easyBtn.innerText = isEasy ? 'Easy Mode' : 'Normal Mode'; // Update button text
 });
+
+function updateSettingsDisplay() {
+    const difficultyDisplay = document.getElementById('difficultyDisplay');
+    const speedDisplay = document.getElementById('speedDisplay');
+    const spawnDisplay = document.getElementById('spawnDisplay');
+
+    let difficultyText = 'Normal'; // Default difficulty
+    let speedText = 'Normal'; // Default difficulty
+    let spawnText = spawnTotal;
+
+    if (isEasy) {
+        difficultyText = 'Easy';
+        winningScore = 5000;
+    } else {
+        difficultyText = 'Normal';
+        winningScore = 10000;
+    }
+
+    if (speedFactor === 1) {
+        speedText = 'Normal';
+    } else {
+        speedText = 'Fast';
+    }
+
+    difficultyDisplay.innerText = 'Difficulty: ' + difficultyText;
+    speedDisplay.innerText = 'Speed: ' + speedText;
+    spawnDisplay.innerText = 'Enemies Spawned: ' + spawnText;
+
+}
+
+
+
+// Create spawn more enemies button
+const spawnMoreEnemiesBtn = document.createElement('button');
+spawnMoreEnemiesBtn.id = 'spawnMoreEnemiesBtn';
+spawnMoreEnemiesBtn.innerText = 'Spawn More Enemies';
+spawnMoreEnemiesBtn.style.position = 'absolute';
+spawnMoreEnemiesBtn.style.top = '130px'; // Adjust as needed
+spawnMoreEnemiesBtn.style.right = '10px';
+spawnMoreEnemiesBtn.style.zIndex = '10';
+spawnMoreEnemiesBtn.style.backgroundColor = 'rgba(255, 255, 255, 0.8)';
+spawnMoreEnemiesBtn.style.border = '1px solid black';
+spawnMoreEnemiesBtn.style.borderRadius = '5px';
+spawnMoreEnemiesBtn.style.padding = '10px';
+spawnMoreEnemiesBtn.style.cursor = 'pointer';
+
+// Append the button to the body
+document.body.appendChild(spawnMoreEnemiesBtn);
+
+
+/* 
+// Create help button
+const helpBtn = document.createElement('button');
+helpBtn.id = 'helpBtn';
+helpBtn.innerText = 'Help';
+helpBtn.style.position = 'absolute';
+helpBtn.style.top = '130px';
+helpBtn.style.right = '10px';
+helpBtn.style.zIndex = '10';
+helpBtn.style.backgroundColor = 'rgba(255, 255, 255, 0.8)';
+helpBtn.style.border = '1px solid black';
+helpBtn.style.borderRadius = '5px';
+helpBtn.style.padding = '10px';
+helpBtn.style.cursor = 'pointer';
+
+document.body.appendChild(helpBtn);
+
+helpBtn.addEventListener('click', function() {
+    fetch('TD.md') // Change to 'help.md' if you have a markdown file
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.text();
+        })
+        .then(data => {
+            displayHelp(data);
+        })
+        .catch(error => {
+            console.error('There has been a problem with your fetch operation:', error);
+        });
+});
+
+function displayHelp(content) {
+    const modal = document.createElement('div');
+    modal.style.position = 'fixed';
+    modal.style.top = '0';
+    modal.style.left = '0';
+    modal.style.width = '100%';
+    modal.style.height = '100%';
+    modal.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
+    modal.style.color = 'white';
+    modal.style.padding = '20px';
+    modal.style.overflowY = 'scroll';
+    modal.style.zIndex = '20';
+    modal.innerHTML = `<h2>Help</h2><pre>${content}</pre><button id="closeHelp">Close</button>`;
+
+    document.body.appendChild(modal);
+
+    document.getElementById('closeHelp').addEventListener('click', function() {
+        document.body.removeChild(modal);
+    });
+}
+*/
+
+// BUTTONS END
 
 // game board
 const controlsBar = {
@@ -227,7 +337,7 @@ const defendersData = [
     { health: 100, color: 'blue', cost: 100, damage: 30 },  // Defender 1
     { health: 50, color: 'green', cost: 50, damage: 15 }, // Defender 2
     { health: 300, color: 'aquamarine', cost: 300, damage: 100 }, // Defender 3
-    { health: 999, color: 'grey', cost: 999, damage: 999 } // Test Defender 4
+    { health: 999, color: 'grey', cost: 1, damage: 999 } // Test Defender 4
     // Add more defenders as needed
 ];
 
@@ -322,15 +432,17 @@ function chooseDefender() {
 
         // Draw the defender cost
         const defenderStats = defendersData[card.index - 1];
-        ctx.fillStyle = 'white'; // Set text color
+        ctx.fillStyle = '#FFFFC0'; // Set text color
         ctx.font = '15px Orbitron'; // Set font size and style
         ctx.fillText(`${defenderStats.cost}`, card.x + 5, card.y + 20); // Position the cost text
 
+        ctx.fillStyle = '#90EE90'; // Set text color
+        ctx.fillText(`${defenderStats.health}`, card.x + 5, card.y + 40); // Position the cost text
+        ctx.fillStyle = '#FF7F7F'; // Set text color
+        ctx.fillText(`${defenderStats.damage}`, card.x + 5, card.y + 60); // Position the cost text
     });
 
 }
-
-
 
 // floating msgs
 const floatingMessages = [];
@@ -359,6 +471,7 @@ class floatingMessage {
         ctx.globalAlpha = 1;
     }
 }
+
 
 function handleFloatingMessages() {
 
@@ -432,13 +545,13 @@ function handleEnemies() {
         if (enemies[i].health <= 0) {
             let gainedResources = enemies[i].maxHealth / 10;
 
-            if (score < 200) {
+            if (score < 200 * diffMod) {
                 gainedResources /= 1;
-            } else if (score < 400) {
+            } else if (score < 400 * diffMod) {
                 gainedResources /= 1.5;
-            } else if (score < 800) {
+            } else if (score < 800 * diffMod) {
                 gainedResources /= 2;
-            } else if (score < 1600) {
+            } else if (score < 1600 * diffMod) {
                 gainedResources /= 4;
             } else {
                 gainedResources /= 10;
@@ -460,7 +573,7 @@ function handleEnemies() {
         // Determine enemy type to spawn based on score
         let enemyToSpawn;
 
-        if (score < 200) {
+        if (score < 200 * diffMod) {
             enemyToSpawn = 0; // Only basic enemy
             enemiesInterval = 500;
         } else if (score < 400 * diffMod) {
@@ -493,6 +606,72 @@ function handleEnemies() {
     }
 }
 
+spawnMoreEnemiesBtn.addEventListener('click', function() {
+    let spawnCount = 4/diffMod; // Number of enemies to spawn
+
+    // Adjust the score deduction based on your current score
+    let scoreDeduction;
+    
+    if (score < 1000) {
+        scoreDeduction = Math.floor(score / 100);
+    } else if (score < 2000) {
+        scoreDeduction = Math.floor(score / 75); 
+    } else if (score < 4000) {
+        scoreDeduction = Math.floor(score / 50); 
+    } else if (score < 8000) {
+        scoreDeduction = Math.floor(score / 25); 
+    } else {
+        scoreDeduction = Math.floor(score / 10); 
+    }
+    
+    score -= scoreDeduction;
+
+    if (numberOfResources > 20000) {
+        numberOfResources -= Math.floor(numberOfResources/100)
+    }
+
+    if (score > 400/diffMod) {
+        // Calculate spawn count based on score
+        spawnCount = Math.floor(score / 100); // Adjust this factor as needed
+    }
+
+    spawnTotal += spawnCount;
+    spawnMoreEnemies(spawnCount);
+});
+
+
+function spawnMoreEnemies(amount) {
+    if (gameOver || (score >= winningScore && enemies.length === 0) || numberOfResources > currencyWin) {
+        return; // Don't spawn enemies if the game is over or won
+    }
+
+    for (let i = 0; i < amount; i++) {
+        let verticalPosition = Math.floor(Math.random() * 5 + 1) * cellSize + cellGap;
+
+        // Choose enemy type based on current score
+        let enemyToSpawn;
+        if (score < 200 * diffMod) {
+            enemyToSpawn = 0; // Only basic enemy
+        } else if (score < 400 * diffMod) {
+            enemyToSpawn = Math.random() < 0.7 ? 0 : 1; // 70% basic, 30% stronger
+        } else if (score < 800 * diffMod) {
+            const rand = Math.random();
+            if (rand < 0.5) enemyToSpawn = 1; // 50% stronger
+            else if (rand < 0.8) enemyToSpawn = 2; // 30% even stronger
+            else enemyToSpawn = 4; // 20% new enemy type 1
+        } else if (score < 1600 * diffMod) {
+            const rand = Math.random();
+            if (rand < 0.4) enemyToSpawn = 2; // 40% even stronger
+            else if (rand < 0.7) enemyToSpawn = 3; // 30% boss
+            else enemyToSpawn = 5; // 30% new enemy type 2
+        } else {
+            enemyToSpawn = Math.random() < 0.7 ? 6 : 7; // 70% basic, 30% stronger
+        }
+
+        enemies.push(new Enemy(verticalPosition, enemyTypes[enemyToSpawn]));
+        enemyPositions.push(verticalPosition);
+    }
+}
 
 // resources
 const amounts = [20, 30, 40];
@@ -547,7 +726,7 @@ function handleGameStatus(){
         ctx.font = '90px Orbitron';
         ctx.fillText('GAME OVER', 135, 330);
     }
-    if ((score >= winningScore/diffMod && enemies.length === 0) || numberOfResources > currencyWin){
+    if ((score >= winningScore && enemies.length === 0) || numberOfResources > currencyWin){
         // Draw a semi-transparent overlay
         ctx.fillStyle = 'rgba(255, 255, 255, 0.7)'; // White with some transparency
         ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -585,6 +764,7 @@ function animate(){
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.fillStyle = 'blue';
     ctx.fillRect(0,0,controlsBar.width, controlsBar.height);
+    updateSettingsDisplay(); // Update difficulty display each frame
     handleGameGrid();
     handleDefenders();
     handleResources();
@@ -595,7 +775,7 @@ function animate(){
     handleFloatingMessages();   
     frame += speedFactor;
 
-    if (gameOver || (score >= winningScore/diffMod && enemies.length === 0) || numberOfResources > currencyWin) {
+    if (gameOver || (score >= winningScore && enemies.length === 0) || numberOfResources > currencyWin) {
         return; // Stop the animation loop
     }
 
