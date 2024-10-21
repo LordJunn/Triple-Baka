@@ -17,6 +17,8 @@ let speedFactor = 1;
 let currencyWin = 100000;
 let diffMod = 1;
 let spawnTotal = 0;
+let scoreThresholds = [];
+let spawnCount = 0; // Number of enemies to spawn
 
 
 const opacityGon = 0.03;
@@ -110,10 +112,12 @@ function updateSettingsDisplay() {
     const difficultyDisplay = document.getElementById('difficultyDisplay');
     const speedDisplay = document.getElementById('speedDisplay');
     const spawnDisplay = document.getElementById('spawnDisplay');
+     
 
     let difficultyText = 'Normal'; // Default difficulty
     let speedText = 'Normal'; // Default difficulty
     let spawnText = spawnTotal;
+    
 
     if (isEasy) {
         difficultyText = 'Easy';
@@ -132,6 +136,7 @@ function updateSettingsDisplay() {
     difficultyDisplay.innerText = 'Difficulty: ' + difficultyText;
     speedDisplay.innerText = 'Speed: ' + speedText;
     spawnDisplay.innerText = 'Enemies Spawned: ' + spawnText;
+    
 
 }
 
@@ -274,6 +279,11 @@ function handleProjectiles(){
         for (let j = 0; j < enemies.length; j++){
             if (enemies[j] && projectiles[i] && collision(projectiles[i], enemies[j])){
                 enemies[j].health -= projectiles[i].power;
+
+                if(enemies[j].health <= 0) {
+                    enemies[j].health = 0;
+                }
+
                 projectiles.splice(i, 1);
                 i--;
             }
@@ -337,7 +347,8 @@ const defendersData = [
     { health: 100, color: 'blue', cost: 100, damage: 30 },  // Defender 1
     { health: 50, color: 'green', cost: 50, damage: 15 }, // Defender 2
     { health: 300, color: 'aquamarine', cost: 300, damage: 100 }, // Defender 3
-    { health: 999, color: 'grey', cost: 1, damage: 999 } // Test Defender 4
+    // { health: 9999, color: 'brown', cost: 100, damage: 0 }, // Defender 4
+    { health: 999, color: 'grey', cost: 999, damage: 999 } // Defender 5
     // Add more defenders as needed
 ];
 
@@ -520,13 +531,18 @@ class Enemy {
 
 const enemyTypes = [
     { health: 100, speed: 0.4, color: '#FF0000' },         // Basic enemy (red)
+
     { health: 200, speed: 0.5, color: '#FFA500' },         // Stronger enemy (orange)
+
     { health: 400, speed: 0.6, color: '#800080' },         // Even stronger enemy (purple)
+    { health: 100, speed: 2, color: '#FFFF00' },           // New enemy type 1 (yellow)
+
     { health: 800, speed: 0.7, color: '#808080' },         // Boss enemy (grey)
-    { health: 150, speed: 2, color: '#FFFF00' },           // New enemy type 1 (yellow)
-    { health: 300, speed: 3, color: '#0000FF' },           // New enemy type 2 (blue)
-    { health: 800, speed: 4, color: '#00008B' },           // Super enemy (dark blue)
+    { health: 200, speed: 3, color: '#0000FF' },           // New enemy type 2 (blue)
+
     { health: 2000, speed: 1, color: '#8B0000' },          // Super enemy (dark red) 
+    { health: 800, speed: 4, color: '#00008B' },           // Super enemy (dark blue)
+    
     // Add more as needed
 ];
 
@@ -535,31 +551,53 @@ let enemySpawnCounter = 0;
 function handleEnemies() {
     enemySpawnCounter++;
 
+    // Define score thresholds based on diffMod
+    
+    if (diffMod === 1) {
+        scoreThresholds = [300, 600, 1800, 7200];
+        interval = [500, 333, 250, 125, 60];
+    } else if (diffMod === 2) {
+        scoreThresholds = [400, 800, 2400, 9600];
+        interval = [1000, 500, 250, 125, 60];
+    }
+
     for (let i = 0; i < enemies.length; i++) {
         enemies[i].update();
         enemies[i].draw();
         
         if (enemies[i].x < 0) {
-            gameOver = true;
+
+            if (score >= enemies[i].health) { // Assuming you have a defined banishCost
+                // Banish the enemy back to the start                
+                score -= enemies[i].health; // Deduct the cost from score
+                floatingMessages.push(new floatingMessage('-' + enemies[i].health, enemies[i].x, enemies[i].y, 30, 'black'));
+                enemies[i].x += 999; // Set to the starting position
+            }
+            else {
+                gameOver = true;
+            }            
+            
         }
         if (enemies[i].health <= 0) {
             let gainedResources = enemies[i].maxHealth / 10;
 
-            if (score < 200 * diffMod) {
+            if (score < scoreThresholds[0]) {
                 gainedResources /= 1;
-            } else if (score < 400 * diffMod) {
+            } else if (score < scoreThresholds[1]) {
+                gainedResources /= 1.1;
+            } else if (score < scoreThresholds[2]) {
                 gainedResources /= 1.5;
-            } else if (score < 800 * diffMod) {
+            } else if (score < scoreThresholds[3]) {
                 gainedResources /= 2;
-            } else if (score < 1600 * diffMod) {
-                gainedResources /= 4;
             } else {
                 gainedResources /= 10;
             }
+
+            gainedResources = Math.round(gainedResources);
     
             floatingMessages.push(new floatingMessage('+' + gainedResources * diffMod, enemies[i].x, enemies[i].y, 30, 'black'));
-            numberOfResources = Math.round(numberOfResources + gainedResources * diffMod);
-            score = Math.round(score + gainedResources);
+            numberOfResources = (numberOfResources + gainedResources * diffMod);
+            score = (score + gainedResources);
             
             enemies.splice(i, 1);
             i--;
@@ -573,27 +611,27 @@ function handleEnemies() {
         // Determine enemy type to spawn based on score
         let enemyToSpawn;
 
-        if (score < 200 * diffMod) {
+        if (score < scoreThresholds[0]) {
             enemyToSpawn = 0; // Only basic enemy
             enemiesInterval = 500;
-        } else if (score < 400 * diffMod) {
+        } else if (score < scoreThresholds[1]) {
             enemyToSpawn = Math.random() < 0.7 ? 0 : 1; // 70% basic, 30% stronger
-            enemiesInterval = 250 * diffMod;
-        } else if (score < 800 * diffMod) {
+            enemiesInterval = interval[1]
+        } else if (score < scoreThresholds[2]) {
             const rand = Math.random();
             if (rand < 0.5) enemyToSpawn = 1; // 50% stronger
             else if (rand < 0.8) enemyToSpawn = 2; // 30% even stronger
-            else enemyToSpawn = 4; // 20% new enemy type 1
-            enemiesInterval = 125 * diffMod;
-        } else if (score < 1600 * diffMod) {
+            else enemyToSpawn = 3; // 20% new enemy type 1
+            enemiesInterval = interval[2]
+        } else if (score < scoreThresholds[3]) {
             const rand = Math.random();
             if (rand < 0.4) enemyToSpawn = 2; // 40% even stronger
-            else if (rand < 0.7) enemyToSpawn = 3; // 30% boss
+            else if (rand < 0.7) enemyToSpawn = 4; // 30% boss
             else enemyToSpawn = 5; // 30% new enemy type 2
-            enemiesInterval = 60 * diffMod;
+            enemiesInterval = interval[3]
         } else {
             enemyToSpawn = Math.random() < 0.7 ? 6 : 7; // 70% basic, 30% stronger
-            enemiesInterval = 30 * diffMod;
+            enemiesInterval = interval[4];
         }
 
         // Create a new enemy instance with the chosen type
@@ -607,18 +645,19 @@ function handleEnemies() {
 }
 
 spawnMoreEnemiesBtn.addEventListener('click', function() {
-    let spawnCount = 4/diffMod; // Number of enemies to spawn
+    
+    spawnCount = 4/diffMod;
 
     // Adjust the score deduction based on your current score
     let scoreDeduction;
     
-    if (score < 1000) {
+    if (score < scoreThresholds[0]) {
         scoreDeduction = Math.floor(score / 100);
-    } else if (score < 2000) {
+    } else if (score < scoreThresholds[1]) {
         scoreDeduction = Math.floor(score / 75); 
-    } else if (score < 4000) {
+    } else if (score < scoreThresholds[2]) {
         scoreDeduction = Math.floor(score / 50); 
-    } else if (score < 8000) {
+    } else if (score < scoreThresholds[3]) {
         scoreDeduction = Math.floor(score / 25); 
     } else {
         scoreDeduction = Math.floor(score / 10); 
@@ -630,10 +669,18 @@ spawnMoreEnemiesBtn.addEventListener('click', function() {
         numberOfResources -= Math.floor(numberOfResources/100)
     }
 
-    if (score > 400/diffMod) {
-        // Calculate spawn count based on score
-        spawnCount = Math.floor(score / 100); // Adjust this factor as needed
+    if (score < scoreThresholds[0]) {
+        spawnCount = 4/diffMod;
+    } else if (score < scoreThresholds[1]) {
+        spawnCount += 4/diffMod; 
+    } else if (score < scoreThresholds[2]) {
+        spawnCount += 12/diffMod;
+    } else if (score < scoreThresholds[3]) {
+        spawnCount += 28/diffMod;
+    } else {
+        spawnCount += 96/diffMod; 
     }
+    
 
     spawnTotal += spawnCount;
     spawnMoreEnemies(spawnCount);
@@ -650,19 +697,19 @@ function spawnMoreEnemies(amount) {
 
         // Choose enemy type based on current score
         let enemyToSpawn;
-        if (score < 200 * diffMod) {
+        if (score < scoreThresholds[0]) {
             enemyToSpawn = 0; // Only basic enemy
-        } else if (score < 400 * diffMod) {
+        } else if (score < scoreThresholds[1]) {
             enemyToSpawn = Math.random() < 0.7 ? 0 : 1; // 70% basic, 30% stronger
-        } else if (score < 800 * diffMod) {
+        } else if (score < scoreThresholds[2]) {
             const rand = Math.random();
             if (rand < 0.5) enemyToSpawn = 1; // 50% stronger
             else if (rand < 0.8) enemyToSpawn = 2; // 30% even stronger
-            else enemyToSpawn = 4; // 20% new enemy type 1
-        } else if (score < 1600 * diffMod) {
+            else enemyToSpawn = 3; // 20% new enemy type 1
+        } else if (score < scoreThresholds[3]) {
             const rand = Math.random();
             if (rand < 0.4) enemyToSpawn = 2; // 40% even stronger
-            else if (rand < 0.7) enemyToSpawn = 3; // 30% boss
+            else if (rand < 0.7) enemyToSpawn = 4; // 30% boss
             else enemyToSpawn = 5; // 30% new enemy type 2
         } else {
             enemyToSpawn = Math.random() < 0.7 ? 6 : 7; // 70% basic, 30% stronger
@@ -727,6 +774,9 @@ function handleGameStatus(){
         ctx.fillText('GAME OVER', 135, 330);
     }
     if ((score >= winningScore && enemies.length === 0) || numberOfResources > currencyWin){
+        enemies.splice(0, enemies.length);
+        enemyPositions.splice(0, enemyPositions.length);
+
         // Draw a semi-transparent overlay
         ctx.fillStyle = 'rgba(255, 255, 255, 0.7)'; // White with some transparency
         ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -776,6 +826,10 @@ function animate(){
     frame += speedFactor;
 
     if (gameOver || (score >= winningScore && enemies.length === 0) || numberOfResources > currencyWin) {
+        enemies.splice(0, enemies.length);
+        enemyPositions.splice(0, enemyPositions.length);
+        
+        handleEnemies()
         return; // Stop the animation loop
     }
 
