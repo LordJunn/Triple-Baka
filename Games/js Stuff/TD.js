@@ -19,6 +19,7 @@ let diffMod = 1;
 let spawnTotal = 0;
 let scoreThresholds = [];
 let spawnCount = 0; // Number of enemies to spawn
+let percentageGain = 0;
 
 
 const opacityGon = 0.03;
@@ -83,47 +84,72 @@ fastForwardBtn.addEventListener('click', function() {
     fastForwardBtn.innerText = isFastForwarding ? 'Fast Forward' : 'Normal Speed'; // Update button text
 });
 
-// Create easy mode button
-const easyBtn = document.createElement('button');
-easyBtn.id = 'easyBtn';
-easyBtn.innerText = 'Normal Mode';
-easyBtn.style.position = 'absolute';
-easyBtn.style.top = '70px';
-easyBtn.style.right = '10px';
-easyBtn.style.zIndex = '10';
-easyBtn.style.backgroundColor = 'rgba(255, 255, 255, 0.8)';
-easyBtn.style.border = '1px solid black';
-easyBtn.style.borderRadius = '5px';
-easyBtn.style.padding = '10px';
-easyBtn.style.cursor = 'pointer';
+// Create a select element for difficulty
+const difficultySelect = document.createElement('select');
+difficultySelect.id = 'difficultySelect';
+difficultySelect.style.position = 'absolute';
+difficultySelect.style.top = '70px';
+difficultySelect.style.right = '10px';
+difficultySelect.style.zIndex = '10';
+difficultySelect.style.backgroundColor = 'rgba(255, 255, 255, 0.8)';
+difficultySelect.style.border = '1px solid black';
+difficultySelect.style.borderRadius = '5px';
+difficultySelect.style.padding = '10px';
+difficultySelect.style.cursor = 'pointer';
 
-// Append the button to the body
-document.body.appendChild(easyBtn);
+// Create options for the select element
+const easyOption = new Option('Easy', 'easy');
+const normalOption = new Option('Normal', 'normal');
+const hardOption = new Option('Hard', 'hard');
+
+difficultySelect.add(easyOption);
+difficultySelect.add(normalOption);
+difficultySelect.add(hardOption);
+
+// Set the default selected option to "Normal"
+difficultySelect.value = 'normal'; // Set default value
+
+// Append the select element to the body
+document.body.appendChild(difficultySelect);
 
 let isEasy = false;
+let isHard = false;
 
-easyBtn.addEventListener('click', function() {
-    isEasy = !isEasy; // Toggle fast forward state
-    diffMod = isEasy ? 2 : 1; // Set speed factor based on state
-    easyBtn.innerText = isEasy ? 'Easy Mode' : 'Normal Mode'; // Update button text
+// Add event listener for the select change
+difficultySelect.addEventListener('change', function() {
+    const selectedValue = difficultySelect.value;
+    if (selectedValue === 'easy') {
+        isEasy = true;
+        isHard = false;
+    } else if (selectedValue === 'hard') {
+        isHard = true;
+        isEasy = false;
+    } else {
+        isEasy = false;
+        isHard = false;
+    }
+    updateSettingsDisplay();
 });
 
 function updateSettingsDisplay() {
     const difficultyDisplay = document.getElementById('difficultyDisplay');
     const speedDisplay = document.getElementById('speedDisplay');
     const spawnDisplay = document.getElementById('spawnDisplay');
+    const bonusDisplay = document.getElementById('bonusDisplay'); 
      
 
     let difficultyText = 'Normal'; // Default difficulty
     let speedText = 'Normal'; // Default difficulty
     let spawnText = spawnTotal;
+    let bonusText = percentageGain;
     
-
     if (isEasy) {
         difficultyText = 'Easy';
         winningScore = 5000;
+    } else if (isHard) {
+        difficultyText = 'Hard';
+        winningScore = 20000; // Set winning score for hard mode
     } else {
-        difficultyText = 'Normal';
         winningScore = 10000;
     }
 
@@ -135,9 +161,9 @@ function updateSettingsDisplay() {
 
     difficultyDisplay.innerText = 'Difficulty: ' + difficultyText;
     speedDisplay.innerText = 'Speed: ' + speedText;
-    spawnDisplay.innerText = 'Enemies Spawned: ' + spawnText;
+    spawnDisplay.innerText = 'Enemies Spawned: ' + spawnText.toFixed(0);
+    bonusDisplay.innerText = 'Score Buff: ' + (1 + (bonusText / 100)).toFixed(2) + 'x';
     
-
 }
 
 
@@ -300,6 +326,7 @@ function handleProjectiles(){
 const defender1 = new Image();
 const defender2 = new Image();
 const defender3 = new Image();
+const defender4 = new Image();
 
 class Defender {
     constructor(x, y, health, color, damage, cost) {
@@ -527,24 +554,47 @@ class Enemy {
         ctx.font = '30px Orbitron';
         ctx.fillText(Math.floor(this.health), this.x + 15, this.y + 30);
     }
+
+    scale(score) {
+        if (score > 10000) {
+            // Calculate base scaling using an exponential function
+
+            // Additional scaling based on thresholds with exponential growth
+            let additionalScaling = 0;
+            for (let n = 0; n <= 100; n++) { // Adjust the upper limit as needed
+                if ((n * 100) >= (score - 10000)) {
+                    additionalScaling = n; // Gain is n%
+                    break;
+                }
+            }    
+
+            // Calculate total scaling
+            this.health = this.maxHealth * (1 + (additionalScaling/100));
+        }
+    }
 }
 
 const enemyTypes = [
-    { health: 100, speed: 0.4, color: '#FF0000' },         // Basic enemy (red)
+    { health: 100, speed: 0.4, color: 'rgba(255, 0, 0, 0.8)' },         // Basic enemy (red)
 
-    { health: 200, speed: 0.5, color: '#FFA500' },         // Stronger enemy (orange)
+    { health: 200, speed: 0.5, color: 'rgba(255, 165, 0, 0.8)' },     // Stronger enemy (orange)
 
-    { health: 400, speed: 0.6, color: '#800080' },         // Even stronger enemy (purple)
-    { health: 100, speed: 2, color: '#FFFF00' },           // New enemy type 1 (yellow)
+    { health: 400, speed: 0.6, color: 'rgba(128, 0, 128, 0.8)' },     // Even stronger enemy (purple)
+    { health: 100, speed: 2, color: 'rgba(255, 255, 0, 0.8)' },       // New enemy type 1 (yellow)
 
-    { health: 800, speed: 0.7, color: '#808080' },         // Boss enemy (grey)
-    { health: 200, speed: 3, color: '#0000FF' },           // New enemy type 2 (blue)
+    { health: 800, speed: 0.7, color: 'rgba(128, 128, 128, 0.8)' },   // Boss enemy (grey)
+    { health: 200, speed: 3, color: 'rgba(0, 0, 255, 0.8)' },         // New enemy type 2 (blue)
 
-    { health: 2000, speed: 1, color: '#8B0000' },          // Super enemy (dark red) 
-    { health: 800, speed: 4, color: '#00008B' },           // Super enemy (dark blue)
+    { health: 2000, speed: 1, color: 'rgba(139, 0, 0, 0.8)' },        // Super enemy (dark red) 
+    { health: 800, speed: 4, color: 'rgba(0, 0, 139, 0.8)' },         // Super enemy (dark blue)
+
+    { health: 9999, speed: 0.5, color: 'rgba(0, 100, 0, 0.8)' },      // New enemy type 1 (dark green)
+    { health: 9999, speed: 2, color: 'rgba(0, 0, 0, 0.8)' },          // New enemy type 2 (black) 
     
     // Add more as needed
 ];
+
+
 
 let enemySpawnCounter = 0;
 
@@ -553,12 +603,15 @@ function handleEnemies() {
 
     // Define score thresholds based on diffMod
     
-    if (diffMod === 1) {
-        scoreThresholds = [300, 600, 1800, 7200];
-        interval = [500, 333, 250, 125, 60];
-    } else if (diffMod === 2) {
+    if (isEasy) {
         scoreThresholds = [400, 800, 2400, 9600];
         interval = [1000, 500, 250, 125, 60];
+    } else if (isHard) {
+        scoreThresholds = [250, 500, 1500, 6000];
+        interval = [400, 266, 200, 100, 60]; // 0.8x of medium
+    } else {
+        scoreThresholds = [300, 600, 1800, 7200];
+        interval = [500, 333, 250, 125, 60];
     }
 
     for (let i = 0; i < enemies.length; i++) {
@@ -579,7 +632,7 @@ function handleEnemies() {
             
         }
         if (enemies[i].health <= 0) {
-            let gainedResources = enemies[i].maxHealth / 10;
+            let gainedResources = (enemies[i].maxHealth / 10); // * diffMod;
 
             if (score < scoreThresholds[0]) {
                 gainedResources /= 1;
@@ -593,10 +646,28 @@ function handleEnemies() {
                 gainedResources /= 10;
             }
 
+            if (score > 10000) {
+                gainedResources /= 10; // Reduce gained resources
+            }
+            
+            for (let n = 0; n <= 100; n++) { // Adjust the upper limit as needed
+                if (Math.pow(n, 2) >= spawnTotal) {
+                    percentageGain = n; // Gain is n%
+                    break;
+                }
+            }
+
+            // Ensure percentageGain does not go below 0
+            percentageGain = Math.max(percentageGain, 0);
+        
+            // Apply the gain
+            gainedResources += (gainedResources * (percentageGain / 100));
+
+
             gainedResources = Math.round(gainedResources);
     
-            floatingMessages.push(new floatingMessage('+' + gainedResources * diffMod, enemies[i].x, enemies[i].y, 30, 'black'));
-            numberOfResources = (numberOfResources + gainedResources * diffMod);
+            floatingMessages.push(new floatingMessage('+' + gainedResources, enemies[i].x, enemies[i].y, 30, 'black'));
+            numberOfResources = (numberOfResources + gainedResources);
             score = (score + gainedResources);
             
             enemies.splice(i, 1);
@@ -608,6 +679,7 @@ function handleEnemies() {
         enemySpawnCounter = 0;
         let verticalPosition = Math.floor(Math.random() * 5 + 1) * cellSize + cellGap;
 
+        
         // Determine enemy type to spawn based on score
         let enemyToSpawn;
 
@@ -629,13 +701,27 @@ function handleEnemies() {
             else if (rand < 0.7) enemyToSpawn = 4; // 30% boss
             else enemyToSpawn = 5; // 30% new enemy type 2
             enemiesInterval = interval[3]
+        } else if (score > 10000) {
+            const rand = Math.random();
+            if (rand < 0.40) enemyToSpawn = 6; // 40% even stronger
+            else if (rand < 0.80) enemyToSpawn = 7; // 30% boss
+            else if (rand < 0.95) enemyToSpawn = 8; // 30% boss
+            else enemyToSpawn = 9; // 30% new enemy type 2
+            enemiesInterval = (interval[3]/2);
+
+            if ((rand >= 0.99) && (score > 15000)) {
+                spawnMoreEnemies((Math.cbrt(score)) * 2);
+            }
+
         } else {
             enemyToSpawn = Math.random() < 0.7 ? 6 : 7; // 70% basic, 30% stronger
             enemiesInterval = interval[4];
         }
 
         // Create a new enemy instance with the chosen type
-        enemies.push(new Enemy(verticalPosition, enemyTypes[enemyToSpawn]));
+        const newEnemy = new Enemy(verticalPosition, enemyTypes[enemyToSpawn]);
+        newEnemy.scale(score); // Scale health based on current score
+        enemies.push(newEnemy);
         enemyPositions.push(verticalPosition);
 
         // Optionally decrease the interval as the game progresses
@@ -645,8 +731,14 @@ function handleEnemies() {
 }
 
 spawnMoreEnemiesBtn.addEventListener('click', function() {
-    
-    spawnCount = 4/diffMod;
+  
+    if (isEasy) {
+        spawnCount = 2;
+    } else if (isHard) {
+        spawnCount = 6;
+    } else {
+        spawnCount = 4;
+    }
 
     // Adjust the score deduction based on your current score
     let scoreDeduction;
@@ -659,28 +751,29 @@ spawnMoreEnemiesBtn.addEventListener('click', function() {
         scoreDeduction = Math.floor(score / 50); 
     } else if (score < scoreThresholds[3]) {
         scoreDeduction = Math.floor(score / 25); 
+        spawnCount += (spawnTotal/100);
     } else {
         scoreDeduction = Math.floor(score / 10); 
+        spawnCount += (spawnTotal/50);
     }
     
     score -= scoreDeduction;
 
     if (numberOfResources > 20000) {
-        numberOfResources -= Math.floor(numberOfResources/100)
+        numberOfResources -= Math.floor(numberOfResources/100);
     }
 
     if (score < scoreThresholds[0]) {
-        spawnCount = 4/diffMod;
+        spawnCount *= 1;
     } else if (score < scoreThresholds[1]) {
-        spawnCount += 4/diffMod; 
+        spawnCount *= 2; 
     } else if (score < scoreThresholds[2]) {
-        spawnCount += 12/diffMod;
+        spawnCount *= 3;
     } else if (score < scoreThresholds[3]) {
-        spawnCount += 28/diffMod;
+        spawnCount *= 4;
     } else {
-        spawnCount += 96/diffMod; 
+        spawnCount *= 5; 
     }
-    
 
     spawnTotal += spawnCount;
     spawnMoreEnemies(spawnCount);
@@ -691,22 +784,23 @@ function spawnMoreEnemies(amount) {
     if (gameOver || (score >= winningScore && enemies.length === 0) || numberOfResources > currencyWin) {
         return; // Don't spawn enemies if the game is over or won
     }
+    
 
     for (let i = 0; i < amount; i++) {
         let verticalPosition = Math.floor(Math.random() * 5 + 1) * cellSize + cellGap;
 
         // Choose enemy type based on current score
         let enemyToSpawn;
-        if (score < scoreThresholds[0]) {
+        if (score < scoreThresholds[1]) {
             enemyToSpawn = 0; // Only basic enemy
-        } else if (score < scoreThresholds[1]) {
-            enemyToSpawn = Math.random() < 0.7 ? 0 : 1; // 70% basic, 30% stronger
         } else if (score < scoreThresholds[2]) {
+            enemyToSpawn = Math.random() < 0.7 ? 0 : 1; // 70% basic, 30% stronger
+        } else if (score < scoreThresholds[3]) {
             const rand = Math.random();
             if (rand < 0.5) enemyToSpawn = 1; // 50% stronger
             else if (rand < 0.8) enemyToSpawn = 2; // 30% even stronger
             else enemyToSpawn = 3; // 20% new enemy type 1
-        } else if (score < scoreThresholds[3]) {
+        } else if (score < scoreThresholds[4]) {
             const rand = Math.random();
             if (rand < 0.4) enemyToSpawn = 2; // 40% even stronger
             else if (rand < 0.7) enemyToSpawn = 4; // 30% boss
@@ -744,7 +838,15 @@ let resourceSpawnCounter = 0;
 function handleResources(){
     resourceSpawnCounter++; // Increment the resource spawn counter
 
-    if (resourceSpawnCounter >= 500/speedFactor && score < winningScore && numberOfResources < 10000){
+    if (isEasy && score < scoreThresholds[0]) {
+        spawnInterval = 400; 
+    } else if (isHard && score > scoreThresholds[0]) {
+        spawnInterval = 700;
+    } else {
+        spawnInterval = 500; 
+    }
+
+    if (resourceSpawnCounter >= spawnInterval/speedFactor && score < winningScore && numberOfResources < 10000){
         resources.push(new Resource());
         resourceSpawnCounter = 0; // Reset the spawn counter
     }
