@@ -14,13 +14,12 @@ let score = 0;
 let winningScore = 10000;
 let chosenDefender = 1;
 let speedFactor = 1;
-let currencyWin = 100000;
 let diffMod = 1;
 let spawnTotal = 0;
 let scoreThresholds = [];
 let spawnCount = 0; // Number of enemies to spawn
 let percentageGain = 0;
-
+let peakScore = 0;
 
 const opacityGon = 0.03;
 
@@ -101,10 +100,12 @@ difficultySelect.style.cursor = 'pointer';
 const easyOption = new Option('Easy', 'easy');
 const normalOption = new Option('Normal', 'normal');
 const hardOption = new Option('Hard', 'hard');
+const infinityOption = new Option('Infinity', 'infinity'); // New option
 
 difficultySelect.add(easyOption);
 difficultySelect.add(normalOption);
 difficultySelect.add(hardOption);
+difficultySelect.add(infinityOption); // Add the new option
 
 // Set the default selected option to "Normal"
 difficultySelect.value = 'normal'; // Set default value
@@ -114,6 +115,7 @@ document.body.appendChild(difficultySelect);
 
 let isEasy = false;
 let isHard = false;
+let isinfinity = false; // New variable for very hard
 
 // Add event listener for the select change
 difficultySelect.addEventListener('change', function() {
@@ -121,12 +123,19 @@ difficultySelect.addEventListener('change', function() {
     if (selectedValue === 'easy') {
         isEasy = true;
         isHard = false;
+        isinfinity = false; // Reset
     } else if (selectedValue === 'hard') {
         isHard = true;
         isEasy = false;
+        isinfinity = false; // Reset
+    } else if (selectedValue === 'infinity') { 
+        isinfinity = true;
+        isEasy = false;
+        isHard = false; // Reset
     } else {
         isEasy = false;
         isHard = false;
+        isinfinity = false; // Reset
     }
     updateSettingsDisplay();
 });
@@ -135,20 +144,22 @@ function updateSettingsDisplay() {
     const difficultyDisplay = document.getElementById('difficultyDisplay');
     const speedDisplay = document.getElementById('speedDisplay');
     const spawnDisplay = document.getElementById('spawnDisplay');
-    const bonusDisplay = document.getElementById('bonusDisplay'); 
-     
+    const bonusDisplay = document.getElementById('bonusDisplay');
 
     let difficultyText = 'Normal'; // Default difficulty
-    let speedText = 'Normal'; // Default difficulty
+    let speedText = 'Normal'; // Default speed
     let spawnText = spawnTotal;
     let bonusText = percentageGain;
-    
+
     if (isEasy) {
         difficultyText = 'Easy';
         winningScore = 5000;
     } else if (isHard) {
         difficultyText = 'Hard';
         winningScore = 20000; // Set winning score for hard mode
+    } else if (isinfinity) { // Logic for very hard
+        difficultyText = 'Infinity';
+        winningScore = Infinity; // Set winning score for very hard mode
     } else {
         winningScore = 10000;
     }
@@ -163,9 +174,7 @@ function updateSettingsDisplay() {
     speedDisplay.innerText = 'Speed: ' + speedText;
     spawnDisplay.innerText = 'Enemies Spawned: ' + spawnText.toFixed(0);
     bonusDisplay.innerText = 'Score Buff: ' + (1 + (bonusText / 100)).toFixed(2) + 'x';
-    
 }
-
 
 
 // Create spawn more enemies button
@@ -310,12 +319,12 @@ function handleProjectiles(){
                     enemies[j].health = 0;
                 }
 
-                projectiles.splice(i, 1);
+                projectiles.splice(i, 1); // remove this part if u like beammmm
                 i--;
             }
         }
 
-        if (projectiles[i] && projectiles[i].x > canvas.width - cellSize){
+        if (projectiles[i] && projectiles[i].x > canvas.width){
             projectiles.splice(i, 1);
             i--;
         }
@@ -417,30 +426,42 @@ canvas.addEventListener('contextmenu', function(e) {
     for (let i = 0; i < defenders.length; i++) {
         if (defenders[i].x === gridPositionX && defenders[i].y === gridPositionY) {
             // Refund half the cost of the defender
-            numberOfResources += defenders[i].cost * 0.5;
+            numberOfResources += Math.floor(defenders[i].cost * 0.5);
+
+            for (let j = 0; j < enemies.length; j++) {
+                if (!collision(defenders[i], enemies[j])) {
+                    enemies[j].movement = enemies[j].speed; // Resume enemy movement
+                }
+            }
+
             defenders.splice(i, 1); // Remove the defender
             break; // Exit the loop after removal
         }
     }
 });
 
-function handleDefenders(){
-    for (let i = 0; i < defenders.length; i++){
+function handleDefenders() {
+    for (let i = 0; i < defenders.length; i++) {
         defenders[i].draw();
         defenders[i].update();
-        if (enemyPositions.indexOf(defenders[i].y) !== -1){
-            defenders[i].shooting = true;
-        } else {
-            defenders[i].shooting = false;
-        }
-        for (let j = 0; j < enemies.length; j++){
-            if (defenders[i] && collision(defenders[i], enemies[j])){
+
+        // Check if the defender should shoot
+        defenders[i].shooting = enemyPositions.includes(defenders[i].y);
+
+        for (let j = 0; j < enemies.length; j++) {
+            if (defenders[i] && collision(defenders[i], enemies[j])) {
+                // If there’s a collision, stop enemy movement
                 enemies[j].movement = 0;
                 defenders[i].health -= 1;
-            }
-            if (defenders[i] && defenders[i].health <= 0){
-                defenders.splice(i, 1);
-                i--;
+
+                // Check if the defender is dead
+                if (defenders[i].health <= 0) {
+                    defenders.splice(i, 1);
+                    i--; // Adjust index after removal
+                    enemies[j].movement = enemies[j].speed;
+                }
+            } else if (defenders[i] === undefined) {
+                // If the defender has been removed, let the enemy move
                 enemies[j].movement = enemies[j].speed;
             }
         }
@@ -513,7 +534,7 @@ class floatingMessage {
 
 function handleFloatingMessages() {
 
-    if (gameOver || (score >= winningScore && enemies.length === 0) || numberOfResources > currencyWin) {
+    if (gameOver || (score >= winningScore && enemies.length === 0)) {
         return; // Stop the animation loop
     }
 
@@ -561,7 +582,7 @@ class Enemy {
 
             // Additional scaling based on thresholds with exponential growth
             let additionalScaling = 0;
-            for (let n = 0; n <= 100; n++) { // Adjust the upper limit as needed
+            for (let n = 0; n <= Infinity; n++) { // Adjust the upper limit as needed
                 if ((n * 100) >= (score - 10000)) {
                     additionalScaling = n; // Gain is n%
                     break;
@@ -571,11 +592,12 @@ class Enemy {
             // Calculate total scaling
             this.health = this.maxHealth * (1 + (additionalScaling/100));
         }
+        
     }
 }
 
 const enemyTypes = [
-    { health: 100, speed: 0.4, color: 'rgba(255, 0, 0, 0.8)' },         // Basic enemy (red)
+    { health: 100, speed: 0.4, color: 'rgba(255, 0, 0, 0.8)' },       // Basic enemy (red)
 
     { health: 200, speed: 0.5, color: 'rgba(255, 165, 0, 0.8)' },     // Stronger enemy (orange)
 
@@ -622,8 +644,8 @@ function handleEnemies() {
 
             if (score >= enemies[i].health) { // Assuming you have a defined banishCost
                 // Banish the enemy back to the start                
-                score -= enemies[i].health; // Deduct the cost from score
-                floatingMessages.push(new floatingMessage('-' + enemies[i].health, enemies[i].x, enemies[i].y, 30, 'black'));
+                score -= Math.floor(enemies[i].health); // Deduct the cost from score
+                floatingMessages.push(new floatingMessage('-' + Math.floor(enemies[i].health), enemies[i].x, enemies[i].y, 30, 'black'));
                 enemies[i].x += 999; // Set to the starting position
             }
             else {
@@ -663,12 +685,15 @@ function handleEnemies() {
             // Apply the gain
             gainedResources += (gainedResources * (percentageGain / 100));
 
-
             gainedResources = Math.round(gainedResources);
     
             floatingMessages.push(new floatingMessage('+' + gainedResources, enemies[i].x, enemies[i].y, 30, 'black'));
             numberOfResources = (numberOfResources + gainedResources);
             score = (score + gainedResources);
+
+            if(score > peakScore) {
+                peakScore = score;
+            }
             
             enemies.splice(i, 1);
             i--;
@@ -781,7 +806,7 @@ spawnMoreEnemiesBtn.addEventListener('click', function() {
 
 
 function spawnMoreEnemies(amount) {
-    if (gameOver || (score >= winningScore && enemies.length === 0) || numberOfResources > currencyWin) {
+    if (gameOver || (score >= winningScore && enemies.length === 0)) {
         return; // Don't spawn enemies if the game is over or won
     }
     
@@ -809,7 +834,9 @@ function spawnMoreEnemies(amount) {
             enemyToSpawn = Math.random() < 0.7 ? 6 : 7; // 70% basic, 30% stronger
         }
 
-        enemies.push(new Enemy(verticalPosition, enemyTypes[enemyToSpawn]));
+        const newEnemy = new Enemy(verticalPosition, enemyTypes[enemyToSpawn]);
+        newEnemy.scale(score); // Scale health based on current score
+        enemies.push(newEnemy);
         enemyPositions.push(verticalPosition);
     }
 }
@@ -868,14 +895,26 @@ function handleGameStatus(){
     ctx.font = '30px Orbitron';
     ctx.fillText('Score: ' + score, 400, 40); // score board
     ctx.fillText('Resources: ' + numberOfResources, 400, 80);
-    if (gameOver){
+    if (gameOver && !isinfinity){
         ctx.fillStyle = 'rgba(255, 255, 255, 0.7)'; // White with some transparency
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         ctx.fillStyle = 'black';
         ctx.font = '90px Orbitron';
         ctx.fillText('GAME OVER', 135, 330);
+    } else if (gameOver && isinfinity) {
+        enemies.splice(0, enemies.length);
+        enemyPositions.splice(0, enemyPositions.length);
+
+        // Draw a semi-transparent overlay
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.7)'; // White with some transparency
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = 'black';
+        ctx.font = '60px Orbitron';
+        ctx.fillText('LEVEL COMPLETE', 130, 300);
+        ctx.font = '30px Orbitron';
+        ctx.fillText('You win with ' + Math.floor((peakScore) * (1 + (percentageGain/100))) + ' points!', 134, 340);        
     }
-    if ((score >= winningScore && enemies.length === 0) || numberOfResources > currencyWin){
+    if ((score >= winningScore && enemies.length === 0)){
         enemies.splice(0, enemies.length);
         enemyPositions.splice(0, enemyPositions.length);
 
@@ -927,7 +966,7 @@ function animate(){
     handleFloatingMessages();   
     frame += speedFactor;
 
-    if (gameOver || (score >= winningScore && enemies.length === 0) || numberOfResources > currencyWin) {
+    if (gameOver || (score >= winningScore && enemies.length === 0)) {
         enemies.splice(0, enemies.length);
         enemyPositions.splice(0, enemyPositions.length);
         
