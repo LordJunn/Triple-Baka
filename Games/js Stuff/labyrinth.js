@@ -81,10 +81,11 @@ function resetGame() {
     );
     end.x = cols - 1;
     end.y = rows - 1;
+    generatedMaze = null; // Add this line if needed
+    solutionPath = []; // Reset the solution path
     generateMaze(0, 0);
     draw();
 }
-
 class Cell {
     constructor(x, y) {
         this.x = x;
@@ -166,11 +167,24 @@ function draw() {
         }));
 
         pen.restore(); // Restore to original state, removing the clipping
+    } else {
+        // Draw the entire maze first
+        canvasElement.style.backgroundColor = "#7FA347"; // Set background to maze color
+        cells.forEach(row => row.forEach(cell => cell.show()));
     }
-    else {
-    // Draw the entire maze first
-    canvasElement.style.backgroundColor = "#7FA347"; // Set background to black
-    cells.forEach(row => row.forEach(cell => cell.show()));
+
+    // Highlight the path taken during solving
+    if (solutionPath) {
+        pen.strokeStyle = 'rgba(255, 165, 0, 0.8)'; // Color for the solver's path
+        pen.lineWidth = 4;
+        solutionPath.forEach((step, index) => {
+            if (index > 0) {
+                pen.beginPath();
+                pen.moveTo(step.x * cellSize + cellSize / 2, step.y * cellSize + cellSize / 2);
+                pen.lineTo(solutionPath[index - 1].x * cellSize + cellSize / 2, solutionPath[index - 1].y * cellSize + cellSize / 2);
+                pen.stroke();
+            }
+        });
     }
 
     drawPlayer(player1);
@@ -276,7 +290,7 @@ document.addEventListener("DOMContentLoaded", function() {
     const gonkanauMusic = document.getElementById("gonkanauMusic");
 
     difficultySelect.addEventListener("change", function() {
-        if (difficultySelect.value === "gonkanau") {
+        if (difficultySelect.value === "gonkanau" || cellSize === 10) {
             gonkanauMusic.play();
         } else {
             gonkanauMusic.pause();
@@ -284,6 +298,71 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     });
 });
+
+document.querySelector('.solvebtn').addEventListener('click', function() {
+    solveMaze(player1.x, player1.y);
+});
+
+function solveMaze(startX, startY) {
+    const stack = [{ x: startX, y: startY }];
+    const visited = new Set();
+    const path = []; // Path taken during the search
+    let foundOptimalPath = false; // Flag for when we find the optimal path
+
+    while (stack.length > 0) {
+        const { x, y } = stack.pop();
+
+        // Check if we've reached the end
+        if (x === end.x && y === end.y) {
+            path.push({ x, y });
+            foundOptimalPath = true;
+            break;
+        }
+
+        const currentCell = cells[y][x];
+        const cellKey = `${x},${y}`;
+
+        if (!visited.has(cellKey)) {
+            visited.add(cellKey);
+            path.push({ x, y }); // Mark the path taken
+
+            const directions = ['top', 'right', 'bottom', 'left'];
+            for (const dir of directions) {
+                const nx = x + (dir === 'right' ? 1 : dir === 'left' ? -1 : 0);
+                const ny = y + (dir === 'bottom' ? 1 : dir === 'top' ? -1 : 0);
+
+                // Check for walls and boundaries
+                if (nx >= 0 && nx < cols && ny >= 0 && ny < rows && !currentCell.walls[dir]) {
+                    stack.push({ x: nx, y: ny });
+                }
+            }
+        }
+    }
+
+    // Animate the solution path
+    if (foundOptimalPath) {
+        animatePath(path);
+    } else {
+        alert("No solution found!");
+    }
+}
+
+function animatePath(path) {
+    let index = 0;
+    solutionPath = path; // Save the path for later drawing
+
+    const interval = setInterval(() => {
+        if (index < path.length) {
+            player1.x = path[index].x;
+            player1.y = path[index].y;
+            draw();
+            index++;
+        } else {
+            clearInterval(interval);
+            alert("Maze solved! Moves made: " + index);
+        }
+    }, 100); // Adjust the speed of the animation as necessary
+}
 
 // Initial Setup
 resetGame();

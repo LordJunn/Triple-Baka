@@ -20,6 +20,9 @@ let scoreThresholds = [];
 let spawnCount = 0; // Number of enemies to spawn
 let percentageGain = 0;
 let peakScore = 0;
+const infinityAudio = new Audio('sdvx3.mp3');
+let isAudioPlaying = false;
+
 
 const opacityGon = 0.03;
 
@@ -132,11 +135,27 @@ difficultySelect.addEventListener('change', function() {
         isinfinity = true;
         isEasy = false;
         isHard = false; // Reset
+
+        // Play audio if not already playing
+        if (!isAudioPlaying && !gameOver) {
+            infinityAudio.loop = true; // Loop the audio
+            infinityAudio.play();
+            isAudioPlaying = true;
+        }
+
     } else {
         isEasy = false;
         isHard = false;
         isinfinity = false; // Reset
     }
+
+    // Stop audio if not in infinity mode
+    if (isAudioPlaying && selectedValue !== 'infinity') {
+        infinityAudio.pause();
+        infinityAudio.currentTime = 0; // Reset to the beginning
+        isAudioPlaying = false;
+    }
+
     updateSettingsDisplay();
 });
 
@@ -890,35 +909,44 @@ function handleResources(){
 }
 
 // utilities
-function handleGameStatus(){
+function handleGameStatus() {
     ctx.fillStyle = 'gold';
     ctx.font = '30px Orbitron';
-    ctx.fillText('Score: ' + score, 400, 40); // score board
+    ctx.fillText('Score: ' + score, 400, 40); // Score board
     ctx.fillText('Resources: ' + numberOfResources, 400, 80);
-    if (gameOver && !isinfinity){
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.7)'; // White with some transparency
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        ctx.fillStyle = 'black';
-        ctx.font = '90px Orbitron';
-        ctx.fillText('GAME OVER', 135, 330);
-    } else if (gameOver && isinfinity) {
-        enemies.splice(0, enemies.length);
-        enemyPositions.splice(0, enemyPositions.length);
 
-        // Draw a semi-transparent overlay
+    if (gameOver) {
+        // Stop audio when game is over
+        if (isAudioPlaying) {
+            infinityAudio.pause();
+            infinityAudio.currentTime = 0; // Reset to the beginning
+            isAudioPlaying = false;
+        }
+
+        // Handle the game over display
         ctx.fillStyle = 'rgba(255, 255, 255, 0.7)'; // White with some transparency
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         ctx.fillStyle = 'black';
-        ctx.font = '60px Orbitron';
-        ctx.fillText('LEVEL COMPLETE', 130, 300);
+        ctx.font = gameOver && isinfinity ? '60px Orbitron' : '90px Orbitron';
+        ctx.fillText(gameOver && isinfinity ? 'LEVEL COMPLETE' : 'GAME OVER', 135, 300);
+
         ctx.font = '30px Orbitron';
-        ctx.fillText('You win with ' + Math.floor((peakScore) * (1 + (percentageGain/100))) + ' points!', 134, 340);        
-    }
-    if ((score >= winningScore && enemies.length === 0)){
+        const finalScore = gameOver && isinfinity 
+            ? Math.floor((peakScore) * (1 + (percentageGain / 100))) 
+            : score;
+        if (isinfinity) {
+            ctx.fillText(`You win with ${finalScore} points!`, 134, 340);
+        }
+
+        // Clear enemies and enemy positions
         enemies.splice(0, enemies.length);
         enemyPositions.splice(0, enemyPositions.length);
+        
+        return; // Stop further execution
+    }
 
-        // Draw a semi-transparent overlay
+    if (score >= winningScore && enemies.length === 0) {
+        // Handle level completion display
         ctx.fillStyle = 'rgba(255, 255, 255, 0.7)'; // White with some transparency
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         ctx.fillStyle = 'black';
