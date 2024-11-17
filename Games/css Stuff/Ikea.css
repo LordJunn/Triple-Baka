@@ -94,6 +94,7 @@ p {
     height: 120px;
     bottom: -120px;
     animation-delay: 1s;
+   
 }
 
 .background li:nth-child(1) {

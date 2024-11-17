@@ -21,8 +21,11 @@ document.querySelector('.startbtn').addEventListener('click', function () {
     resetGame();
 });
 
+
+
 function setDifficulty(difficulty) {
     const bgColour = document.querySelector('.background'); // Select the background element
+    const bgItems = document.querySelectorAll('.background li');
     
     switch (difficulty) {
         case 'easy':
@@ -68,6 +71,27 @@ function setDifficulty(difficulty) {
             bgColour.style.background = "#000000"; 
             break;
     }
+
+    if (difficulty === 'gonkanau') {
+        gonkanauMusic.play();
+        
+        // Apply background image to each <li>
+        bgItems.forEach(li => {
+            li.style.backgroundImage = "url('https://i1.sndcdn.com/artworks-000147290737-pcy7qh-t1080x1080.jpg')";
+            li.style.backgroundSize = "cover"; // Ensure the image covers the entire <li>
+        });
+    } else {
+        gonkanauMusic.pause();
+        gonkanauMusic.currentTime = 0; // Reset to start
+
+        // Reset background image for all <li> elements
+        bgItems.forEach(li => {
+            li.style.backgroundImage = ""; // Clear the background image
+        });
+
+    }
+
+    
     canvas.width = cols * cellSize;
     canvas.height = rows * cellSize;
 }
@@ -289,8 +313,13 @@ document.addEventListener("DOMContentLoaded", function() {
     const difficultySelect = document.getElementById("difficulty");
     const gonkanauMusic = document.getElementById("gonkanauMusic");
 
+    gonkanauMusic.addEventListener('ended', function() {
+        gonkanauMusic.currentTime = 0; // Reset to start
+        gonkanauMusic.play(); // Play the music again
+    });
+
     difficultySelect.addEventListener("change", function() {
-        if (difficultySelect.value === "gonkanau" || cellSize === 10) {
+        if (difficultySelect.value === "gonkanau" || bgColour.style.background === "#000000") {
             gonkanauMusic.play();
         } else {
             gonkanauMusic.pause();
