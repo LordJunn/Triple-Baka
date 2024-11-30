@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>Exchange Rate Calculator</title>
+    <link rel="stylesheet" href="css stuff/exchange.css" />
+  </head>
+  <body>
+    <img src="img/money.png" alt="" class="money-img" />
+    <h1>Exchange Rate Calculator</h1>
+    <p>Choose the currency and the amounts to get the exchange rate</p>
+
+    <div class="container">
+        <div class="currency">
+          <select id="currency-one">
+            <!-- Currency options will be dynamically loaded here -->
+          </select>
+          <input type="number" id="amount-one" placeholder="0" value="1" />
+        </div>
+      
+        <div class="swap-rate-container">
+          <button class="btn" id="swap">
+            Swap
+          </button>
+          <div class="rate" id="rate"></div>
+        </div>
+      
+        <div class="currency-grid">
+          <div class="currency">
+              <select id="currency-two">
+                  <!-- Currency options will be dynamically loaded here -->
+              </select>
+              <input type="number" id="amount-two" placeholder="0" />
+          </div>
+  
+          <div class="currency">
+              <select id="currency-three">
+                  <!-- Currency options will be dynamically loaded here -->
+              </select>
+              <input type="number" id="amount-three" placeholder="0" />
+          </div>
+  
+          <div class="currency">
+              <select id="currency-four">
+                  <!-- Currency options will be dynamically loaded here -->
+              </select>
+              <input type="number" id="amount-four" placeholder="0" />
+          </div>
+  
+          <div class="currency">
+              <select id="currency-five">
+                  <!-- Currency options will be dynamically loaded here -->
+              </select>
+              <input type="number" id="amount-five" placeholder="0" />
+          </div>
+      </div>
+  
+
+      </div>
+
+    <script src="js stuff/exchange.js"></script>
+  </body>
+</html>

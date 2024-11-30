@@ -77,7 +77,7 @@ function setDifficulty(difficulty) {
         
         // Apply background image to each <li>
         bgItems.forEach(li => {
-            li.style.backgroundImage = "url('https://i1.sndcdn.com/artworks-000147290737-pcy7qh-t1080x1080.jpg')";
+            li.style.backgroundImage = "url('Elegy.png')";
             li.style.backgroundSize = "cover"; // Ensure the image covers the entire <li>
         });
     } else {
@@ -199,10 +199,30 @@ function draw() {
 
     // Highlight the path taken during solving
     if (solutionPath) {
-        pen.strokeStyle = 'rgba(255, 165, 0, 0.8)'; // Color for the solver's path
         pen.lineWidth = 4;
+
+        // Total length of the path
+        const pathLength = solutionPath.length;
+
         solutionPath.forEach((step, index) => {
             if (index > 0) {
+                // Calculate the fraction of the path that has been completed
+                const t = index / (pathLength - 1);
+
+                // Calculate RGB values for a smooth transition from red to purple
+                // Red decreases from 255 to 0
+                const red = Math.round(255 * (1 - t));
+
+                // Green decreases from 255 to 0
+                const green = Math.round(255 * Math.max(0, 1 - Math.abs(0.5 - t) * 2));
+
+                // Blue increases from 0 to 255
+                const blue = Math.round(255 * Math.min(1, t));
+
+                // Ensure the color stays within the bounds of RGB (0-255)
+                pen.strokeStyle = `rgb(${red}, ${green}, ${blue}, 0.727)`; // Set the stroke color
+
+                // Draw the line between the current step and the previous step
                 pen.beginPath();
                 pen.moveTo(step.x * cellSize + cellSize / 2, step.y * cellSize + cellSize / 2);
                 pen.lineTo(solutionPath[index - 1].x * cellSize + cellSize / 2, solutionPath[index - 1].y * cellSize + cellSize / 2);
@@ -333,43 +353,66 @@ document.querySelector('.solvebtn').addEventListener('click', function() {
 });
 
 function solveMaze(startX, startY) {
-    const stack = [{ x: startX, y: startY }];
+    // Initialize BFS queue and visited set
+    const queue = [{ x: startX, y: startY }];
     const visited = new Set();
-    const path = []; // Path taken during the search
-    let foundOptimalPath = false; // Flag for when we find the optimal path
+    visited.add(`${startX},${startY}`);
+    
+    const directions = [
+        { dx: 0, dy: -1, dir: 'top' },    // up
+        { dx: 1, dy: 0, dir: 'right' },   // right
+        { dx: 0, dy: 1, dir: 'bottom' },  // down
+        { dx: -1, dy: 0, dir: 'left' }    // left
+    ];
 
-    while (stack.length > 0) {
-        const { x, y } = stack.pop();
+    const parentMap = {}; // To keep track of the path
+
+    let foundOptimalPath = false;
+
+    // Start BFS
+    while (queue.length > 0) {
+        const { x, y } = queue.shift();
 
         // Check if we've reached the end
         if (x === end.x && y === end.y) {
-            path.push({ x, y });
             foundOptimalPath = true;
-            break;
+            break;  // Found the optimal path
         }
 
-        const currentCell = cells[y][x];
-        const cellKey = `${x},${y}`;
+        // Explore neighbors in all four directions
+        for (const { dx, dy, dir } of directions) {
+            const nx = x + dx;
+            const ny = y + dy;
 
-        if (!visited.has(cellKey)) {
-            visited.add(cellKey);
-            path.push({ x, y }); // Mark the path taken
+            // Check for valid cell: within bounds, not visited, and no wall in that direction
+            if (nx >= 0 && nx < cols && ny >= 0 && ny < rows && !visited.has(`${nx},${ny}`)) {
+                const currentCell = cells[y][x];
 
-            const directions = ['top', 'right', 'bottom', 'left'];
-            for (const dir of directions) {
-                const nx = x + (dir === 'right' ? 1 : dir === 'left' ? -1 : 0);
-                const ny = y + (dir === 'bottom' ? 1 : dir === 'top' ? -1 : 0);
+                // If there's no wall in the direction we're moving, proceed
+                if (!currentCell.walls[dir]) {
+                    visited.add(`${nx},${ny}`);
+                    queue.push({ x: nx, y: ny });
 
-                // Check for walls and boundaries
-                if (nx >= 0 && nx < cols && ny >= 0 && ny < rows && !currentCell.walls[dir]) {
-                    stack.push({ x: nx, y: ny });
+                    // Track the parent to reconstruct the path
+                    parentMap[`${nx},${ny}`] = { x, y };
                 }
             }
         }
     }
 
-    // Animate the solution path
+    // If we found the optimal path, reconstruct the path
     if (foundOptimalPath) {
+        const path = [];
+        let current = { x: end.x, y: end.y };
+
+        while (current.x !== startX || current.y !== startY) {
+            path.unshift(current);  // Add to the beginning of the path
+            current = parentMap[`${current.x},${current.y}`];
+        }
+
+        path.unshift({ x: startX, y: startY }); // Add the start position
+
+        // Animate the solution path
         animatePath(path);
     } else {
         alert("No solution found!");
@@ -390,7 +433,7 @@ function animatePath(path) {
             clearInterval(interval);
             alert("Maze solved! Moves made: " + index);
         }
-    }, 100); // Adjust the speed of the animation as necessary
+    }, cellSize * 2); // Adjust the speed of the animation as necessary
 }
 
 // Initial Setup

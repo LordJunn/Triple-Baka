@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <link 
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.2/css/all.min.css"
+    />
+    <link rel="stylesheet" href="css stuff/music.css" />
+    <title>Music Player</title>
+  </head>
+  <body>
+    <h1> <a href="">Music Player</a>  </h1>
+
+    <div class="music-container" id="music-container">
+      <div class="music-info">
+        <h4 id="title"></h4>
+        <div class="progress-container" id="progress-container">
+          <div class="progress" id="progress"></div>
+        </div>
+        <span id="currTime">00:00</span> / <span id="durTime">00:00</span>
+      </div>
+
+      <audio src="music/ukulele.mp3" id="audio"></audio>
+
+      <div class="img-container">
+        <img src="images/ukulele.jpg" alt="music-cover" id="cover" />
+      </div>
+
+      <div class="navigation">
+        <button id="rewind" class="action-btn">
+          <i class="fas fa-undo"></i> <!-- Icon for Rewind -->
+        </button>
+        <button id="prev" class="action-btn">
+          <i class="fas fa-backward"></i>
+        </button>
+        <button id="play" class="action-btn action-btn-big">
+          <i class="fas fa-play"></i>
+        </button>
+        <button id="next" class="action-btn">
+          <i class="fas fa-forward"></i>
+        </button>
+        <button id="fast-forward" class="action-btn">
+          <i class="fas fa-redo"></i> <!-- Icon for Fast Forward -->
+        </button>
+      </div>
+    </div>
+
+    <!-- Song Selection Below the Player -->
+    <div class="song-selection">
+      <input type="text" id="search" placeholder="Search songs..." />
+      <select id="song-select">
+        <!-- Options will be dynamically loaded here -->
+      </select>
+    </div>
+
+    <script src="js stuff/music.js"></script>
+  </body>
+</html>

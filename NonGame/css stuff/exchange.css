@@ -1,0 +1,187 @@
+/* Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,300;0,900;1,500;1,700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Paytone+One&display=swap');
+
+/* Root Variables */
+:root {
+    --bg-color: #fff;
+    --text-color: #221314;
+    --second-color: #5a7184;
+    --main-color: #46379c;
+    --main-hover: #7259ff;
+    --highlight-color: #00ff00;
+    --font-big: 6rem;
+    --font-h2: 3rem;
+    --font-p: 1.1rem;
+    --border-radius: 4px;
+}
+
+/* Universal Reset */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Roboto', 'Poppins', sans-serif;
+    text-decoration: none;
+    list-style: none;
+    scroll-behavior: smooth;
+}
+
+/* Body Styles */
+body {
+    background: var(--bg-color);
+    color: var(--text-color);
+    font-family: 'Roboto', 'Poppins', sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    min-height: 100vh;
+    padding-top: 20px;
+}
+
+/* Main Header */
+h1 {
+    text-align: center;
+    font-size: var(--font-h2);
+    margin-bottom: 20px;
+}
+
+p {
+    text-align: center;
+    font-size: var(--font-p);
+    margin-bottom: 40px;
+}
+
+/* Main Container */
+.container {
+    display: flex;
+    flex-direction: column;  /* Stack items vertically */
+    align-items: center;
+    gap: 20px;
+    max-width: 800px;
+    width: 100%;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+/* Container for the 2x2 grid (currency 2, 3, 4, 5) */
+.currency-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;  /* Create two equal columns */
+    gap: 20px;  /* Space between grid items */
+    width: 100%;
+}
+
+/* Currency and Amount Input Styles */
+.currency {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    max-width: 350px;
+    margin: 0 auto;
+}
+
+/* Ensure currency-one stays above and is full width */
+.currency:nth-child(1) {
+    width: 100%;
+}
+
+/* Currency 2, 3, 4, 5 will be placed in a grid */
+.currency:nth-child(2),
+.currency:nth-child(3),
+.currency:nth-child(4),
+.currency:nth-child(5) {
+    width: 100%; /* Ensures all elements inside grid get full width of their grid cell */
+}
+
+/* Add the grid container to hold currencies 2, 3, 4, and 5 */
+.currency:nth-child(2) {
+    grid-column: span 1;
+}
+
+.currency:nth-child(3) {
+    grid-column: span 1;
+}
+
+.currency:nth-child(4) {
+    grid-column: span 1;
+}
+
+.currency:nth-child(5) {
+    grid-column: span 1;
+}
+
+/* Adjust the 'currency' inputs to sit next to each other */
+.currency select,
+.currency input {
+    padding: 10px;
+    margin-bottom: 10px;
+    border: 1px solid var(--second-color);
+    border-radius: var(--border-radius);
+    outline: none;
+    font-size: var(--font-p);
+    width: 100%;
+}
+
+/* Swap Button Container */
+.swap-rate-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+}
+
+#swap {
+    width: 100%;
+    padding: 10px;
+    background: var(--main-color);
+    border: none;
+    color: var(--bg-color);
+    text-align: center;
+    font-size: var(--font-p);
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    transition: 0.3s ease-in-out;
+}
+
+#swap:hover {
+    background: var(--main-hover);
+    color: var(--text-color);
+}
+
+/* Rate Display */
+.rate {
+    font-size: var(--font-p);
+    text-align: center;
+    margin-top: 10px;
+    color: var(--second-color);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .container {
+        padding: 10px;
+        width: 90%;
+    }
+
+    .currency {
+        width: 100%;
+        max-width: 100%;
+    }
+
+    .currency input, .currency select {
+        font-size: 1rem;
+    }
+
+    h1 {
+        font-size: 2rem;
+    }
+
+    /* Stack currencies in a single column on small screens */
+    .currency-grid {
+        grid-template-columns: 1fr;  /* Stack all items vertically on small screens */
+    }
+}
