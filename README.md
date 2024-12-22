@@ -1,15 +1,18 @@
 Making an "all in 1" super repository for any HTML + CSS + JS projects. A way to not clutter my Github.
 
 # Completed:    
-Tic Tac Toe ✅    
+Tic Tac Toe ⭐    
 Maze game ✅    
-2048 ✅   
+(Easier) 2048 ✅   
 Tower Defense (PvZ type) ✅      
 Memory Card game ✅
 
+(Scientific) Calculator ✅
+Music Player ✅ (Desktop is ok, mobile ehh)
+Quad Currency Exchange ✅
+
 # To be done:
-Sudoku    
-Calculator    
+Sudoku     
 Psuedo Wordle (guess the word)     
  
 
