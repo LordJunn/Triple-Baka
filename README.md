@@ -7,6 +7,7 @@ Maze game ✅
 (Easier) 2048 ✅   
 Tower Defense (PvZ type) ✅      
 Memory Card game ✅   
+Wordle (not API for now) ✅   
 
 ### Non Games:
 (Scientific) Calculator ✅  
@@ -15,7 +16,6 @@ Quad Currency Exchange ✅
 
 # To be done:
 Sudoku     
-Psuedo Wordle (guess the word)     
- 
+
 
 Message me if there's anything you would like to see here!
